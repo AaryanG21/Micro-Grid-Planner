@@ -31,15 +31,22 @@ from sqlalchemy.sql import func
 
 from models import Analysis, ApiKey, Equipment, FinancialScenario, Incentive, LoadProfile, Organization, Project, Tariff, User, db
 
+db_url = os.environ.get("DATABASE_URL", "sqlite:///microgrid.db")
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
 app = Flask(__name__)
 app.config.update(
-    SQLALCHEMY_DATABASE_URI=os.environ.get("DATABASE_URL", "sqlite:///microgrid.db"),
+    SQLALCHEMY_DATABASE_URI=db_url,
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     JWT_SECRET_KEY=os.environ.get("JWT_SECRET_KEY", "microgrid-planner-secret-key-2026"),
     MAX_CONTENT_LENGTH=2 * 1024 * 1024,
 )
 db.init_app(app)
+with app.app_context():
+    db.create_all()
 migrate = Migrate(app, db)
+
 jwt = JWTManager(app)
 limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day", "50 per hour"], storage_uri="memory://")
 cache = Cache(app, config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 300})

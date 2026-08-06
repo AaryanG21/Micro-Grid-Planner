@@ -10,6 +10,10 @@ services:
         value: 3.10.0
       - key: JWT_SECRET_KEY
         generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: microgrid-db
+          property: connectionString
 
   # React Frontend Static Site
   - type: web
@@ -21,3 +25,9 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+
+databases:
+  - name: microgrid-db
+    databaseName: microgrid
+    user: microgrid_user
+
