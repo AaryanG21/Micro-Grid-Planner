@@ -1,0 +1,338 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import CountUp from 'react-countup';
+import { Zap, Cpu, CreditCard, Clock, Leaf, ArrowRight } from 'lucide-react';
+import { useReducedMotionSafe } from '../../hooks/useReducedMotionSafe';
+import SolarAssemblyIntro from './SolarAssemblyIntro';
+import OrbitRing from './OrbitRing';
+import FeatureBlock from './FeatureBlock';
+import MiniCalculator from './MiniCalculator';
+import App from '../../App';
+
+export default function Landing() {
+  const [phase, setPhase] = useState('landing');
+  const [appTargetView, setAppTargetView] = useState('dashboard');
+  const [appTargetAuthMode, setAppTargetAuthMode] = useState('login');
+  const prefersReduced = useReducedMotionSafe();
+
+  const handleStart = (targetView = 'dashboard', authMode = 'login') => {
+    setAppTargetView(targetView);
+    setAppTargetAuthMode(authMode);
+    setPhase('intro');
+  };
+
+  const handleNavigateHome = () => {
+    setPhase('landing');
+  };
+
+  if (phase === 'app') {
+    return (
+      <motion.div
+        className="w-full min-h-screen font-body"
+        initial={prefersReduced ? false : { opacity: 0 }}
+        animate={prefersReduced ? false : { opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <App
+          initialView={appTargetView}
+          initialAuthMode={appTargetAuthMode}
+          onNavigateHome={handleNavigateHome}
+        />
+      </motion.div>
+    );
+  }
+
+  if (phase === 'intro') {
+    return <SolarAssemblyIntro onComplete={() => setPhase('app')} />;
+  }
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        key="landing-page"
+        exit={{ opacity: 0 }}
+        className="min-h-screen bg-slate-950 text-slate-100 font-body selection:bg-emerald-500 selection:text-slate-950 overflow-x-hidden flex flex-col"
+      >
+        {/* Navigation Bar (80px height = h-20) */}
+        <header className="w-full border-b border-slate-800 bg-slate-950 sticky top-0 z-40 px-8">
+          <div className="max-w-7xl mx-auto h-20 flex items-center justify-between">
+            <div className="flex items-center space-x-4 cursor-pointer" onClick={() => handleStart('dashboard')}>
+              <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
+                <Zap className="w-6 h-6 text-slate-950" />
+              </div>
+              <div>
+                <span className="text-xl font-bold font-heading text-white block leading-none">
+                  Microgrid Feasibility Engine
+                </span>
+                <span className="text-xs text-emerald-400 font-bold font-body uppercase tracking-wider block mt-1">Enterprise Platform</span>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <button
+                type="button"
+                onClick={() => handleStart('login', 'login')}
+                className="px-4 py-2 text-slate-300 hover:text-white text-sm font-semibold transition cursor-pointer font-body"
+              >
+                Sign In
+              </button>
+              <motion.button
+                onClick={() => handleStart('login', 'register')}
+                whileHover={prefersReduced ? undefined : { scale: 1.05 }}
+                whileTap={prefersReduced ? undefined : { scale: 0.95 }}
+                className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold font-body rounded-xl transition text-sm flex items-center space-x-2 cursor-pointer"
+              >
+                <span>Create Account</span>
+                <ArrowRight className="w-4 h-4" />
+              </motion.button>
+            </div>
+          </div>
+        </header>
+
+        {/* Hero Section */}
+        <section className="px-8 py-24 max-w-5xl mx-auto text-center flex flex-col items-center">
+          <div className="inline-flex items-center space-x-2 px-4 py-2 bg-slate-900 border border-slate-800 rounded-full text-xs font-semibold font-body text-emerald-400 mb-8">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span>Commercial Microgrid Feasibility & Dispatch Engine</span>
+          </div>
+
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black font-heading text-white tracking-tight leading-tight mb-8">
+            Complete Microgrid Feasibility, Financing & Dispatch Platform
+          </h1>
+
+          <p className="text-slate-400 font-body text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed mb-12">
+            Model hybrid solar, wind, and battery storage microgrids. Simulate 24-hour dispatch curves, calculate TOU grid arbitrage, and generate executive PDF reports.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md mb-16">
+            <motion.button
+              onClick={() => handleStart('dashboard')}
+              whileHover={prefersReduced ? undefined : { scale: 1.05 }}
+              whileTap={prefersReduced ? undefined : { scale: 0.95 }}
+              className="w-full sm:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-base md:text-lg font-extrabold font-body rounded-2xl transition flex items-center justify-center space-x-3 cursor-pointer"
+            >
+              <span>Try Interactive Simulator</span>
+              <ArrowRight className="w-5 h-5" />
+            </motion.button>
+            <motion.button
+              onClick={() => handleStart('login', 'register')}
+              whileHover={prefersReduced ? undefined : { scale: 1.05 }}
+              whileTap={prefersReduced ? undefined : { scale: 0.95 }}
+              className="w-full sm:w-auto px-8 py-4 border border-slate-700 hover:border-slate-500 bg-slate-900 text-slate-200 text-base md:text-lg font-bold font-body rounded-2xl transition cursor-pointer"
+            >
+              Sign Up / Register
+            </motion.button>
+          </div>
+
+          {/* 5 Capability Highlights (No Emoji, Lucide Icons, 8px grid) */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full max-w-4xl pt-8 border-t border-slate-800">
+            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center text-center">
+              <Zap className="w-5 h-5 text-emerald-400 mb-2" />
+              <div className="text-xs font-bold font-body text-slate-200">24h Dispatch Curves</div>
+            </div>
+            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center text-center">
+              <Cpu className="w-5 h-5 text-amber-400 mb-2" />
+              <div className="text-xs font-bold font-body text-slate-200">Hardware Catalog</div>
+            </div>
+            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center text-center">
+              <CreditCard className="w-5 h-5 text-cyan-400 mb-2" />
+              <div className="text-xs font-bold font-body text-slate-200">Debt Amortization</div>
+            </div>
+            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center text-center">
+              <Clock className="w-5 h-5 text-blue-400 mb-2" />
+              <div className="text-xs font-bold font-body text-slate-200">TOU Arbitrage</div>
+            </div>
+            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center text-center col-span-2 md:col-span-1">
+              <Leaf className="w-5 h-5 text-green-400 mb-2" />
+              <div className="text-xs font-bold font-body text-slate-200">EV & Carbon Credits</div>
+            </div>
+          </div>
+        </section>
+
+        {/* OrbitRing Section (Primary Loop Visual) */}
+        <div className="w-full flex items-center justify-center py-16 border-y border-slate-900 bg-slate-950">
+          <OrbitRing size={340} />
+        </div>
+
+        {/* Feature Blocks Section */}
+        <section className="px-8 py-24 max-w-7xl mx-auto w-full">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold font-heading text-white mb-4">
+              Architectural Engine Modules
+            </h2>
+            <p className="text-slate-400 font-body text-base sm:text-lg">
+              Engineered modules for multi-resource simulation, financial cashflows, and site selection.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Feature 1: Energy Mix Pie Chart Demo */}
+            <FeatureBlock
+              title="Optimal Energy Mix"
+              caption="Multi-source optimization balancing solar PV generation, wind turbines, and battery storage capacity."
+            >
+              <div className="w-full h-48 flex items-center justify-center relative">
+                <svg viewBox="0 0 200 200" className="w-40 h-40 transform -rotate-90">
+                  {/* Solar 55% */}
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="70"
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth="28"
+                    strokeDasharray="241.9 439.8"
+                  />
+                  {/* Wind 25% */}
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="70"
+                    fill="none"
+                    stroke="#06b6d4"
+                    strokeWidth="28"
+                    strokeDasharray="109.9 439.8"
+                    strokeDashoffset="-241.9"
+                  />
+                  {/* Battery 20% */}
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="70"
+                    fill="none"
+                    stroke="#f59e0b"
+                    strokeWidth="28"
+                    strokeDasharray="88 439.8"
+                    strokeDashoffset="-351.8"
+                  />
+                </svg>
+                <div className="absolute flex flex-col items-center">
+                  <span className="text-xs text-slate-400 font-body uppercase font-bold tracking-wider">Solar PV</span>
+                  <span className="text-lg font-black font-heading text-emerald-400">55%</span>
+                </div>
+              </div>
+            </FeatureBlock>
+
+            {/* Feature 2: Cashflow Chart Demo */}
+            <FeatureBlock
+              title="20-Year Cashflow Model"
+              caption="Project payback periods, internal rate of return, and net present value under custom electricity tariffs."
+            >
+              <div className="w-full h-48 flex items-end justify-between px-4 pb-2 pt-8">
+                {[30, 45, 60, 75, 90, 110, 130, 150].map((h, i) => (
+                  <div key={i} className="flex flex-col items-center flex-1 space-y-2">
+                    <div
+                      className="w-5/6 rounded-t-md bg-emerald-600 transition-all"
+                      style={{ height: `${h}px` }}
+                    />
+                    <span className="text-[10px] text-slate-500 font-mono">Y{i + 1}</span>
+                  </div>
+                ))}
+              </div>
+            </FeatureBlock>
+
+            {/* Feature 3: Map-Based Site Picker Demo */}
+            <FeatureBlock
+              title="Geospatial Site Analysis"
+              caption="Map interface providing localized solar irradiance, wind velocity, and tariff zone data."
+            >
+              <div className="w-full h-48 relative rounded-lg overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center">
+                <div className="relative z-10 flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-emerald-400 flex items-center justify-center shadow-lg">
+                    <div className="w-3 h-3 rounded-full bg-slate-950" />
+                  </div>
+                  <div className="mt-2 px-2 py-1 bg-slate-950 border border-emerald-500/40 rounded text-[10px] text-emerald-300 font-mono">
+                    37.7749° N, 122.4194° W
+                  </div>
+                </div>
+              </div>
+            </FeatureBlock>
+          </div>
+        </section>
+
+        {/* Mini Calculator Section */}
+        <section className="px-8 py-12 flex justify-center">
+          <MiniCalculator />
+        </section>
+
+        {/* Phase 3a: Stat Counters Section */}
+        <section className="px-8 py-16 bg-slate-900 border-y border-slate-800">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            {/* Stat 1 */}
+            <motion.div
+              className="flex flex-col items-center"
+              initial={prefersReduced ? false : { opacity: 0 }}
+              whileInView={prefersReduced ? undefined : { opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              <div className="text-3xl sm:text-4xl md:text-5xl font-black font-heading text-emerald-400 mb-2">
+                $<CountUp end={1615140} duration={2.5} separator="," />
+              </div>
+              <div className="text-slate-300 font-semibold font-body text-base mb-2">
+                5-Year Savings Projection
+              </div>
+              {/* Mandatory disclaimer rule */}
+              <p className="text-xs text-slate-500 font-body italic">
+                Illustrative estimate — run a full site analysis for accurate figures.
+              </p>
+            </motion.div>
+
+            {/* Stat 2 */}
+            <motion.div
+              className="flex flex-col items-center"
+              initial={prefersReduced ? false : { opacity: 0 }}
+              whileInView={prefersReduced ? undefined : { opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              <div className="text-3xl sm:text-4xl md:text-5xl font-black font-heading text-cyan-400 mb-2">
+                <CountUp end={5600} duration={2.5} separator="," />
+              </div>
+              <div className="text-slate-300 font-semibold font-body text-base">
+                Avg. Hours Saved / Year
+              </div>
+            </motion.div>
+
+            {/* Stat 3 */}
+            <motion.div
+              className="flex flex-col items-center"
+              initial={prefersReduced ? false : { opacity: 0 }}
+              whileInView={prefersReduced ? undefined : { opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              <div className="text-3xl sm:text-4xl md:text-5xl font-black font-heading text-teal-400 mb-2">
+                <CountUp end={35} duration={2.5} suffix="%" />
+              </div>
+              <div className="text-slate-300 font-semibold font-body text-base">
+                Avg. Time Reduction
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Closing CTA */}
+        <section className="px-8 py-24 text-center max-w-4xl mx-auto flex flex-col items-center">
+          <h2 className="text-3xl sm:text-5xl font-extrabold font-heading text-white mb-6 tracking-tight">
+            Ready to Build Your Microgrid Strategy?
+          </h2>
+          <p className="text-slate-400 font-body text-lg max-w-xl mb-8">
+            Launch our interactive planning dashboard to simulate energy profiles, optimize component sizing, and view comprehensive reporting.
+          </p>
+          <motion.button
+            onClick={() => handleStart('dashboard')}
+            whileHover={prefersReduced ? undefined : { scale: 1.05 }}
+            whileTap={prefersReduced ? undefined : { scale: 0.95 }}
+            className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-lg font-extrabold font-body rounded-2xl transition flex items-center space-x-3 cursor-pointer"
+          >
+            <span>Try Interactive Simulator</span>
+            <ArrowRight className="w-5 h-5" />
+          </motion.button>
+        </section>
+
+        {/* Footer */}
+        <footer className="mt-auto border-t border-slate-900 bg-slate-950 py-8 text-center text-xs text-slate-500 font-body">
+          Microgrid Feasibility Engine &copy; {new Date().getFullYear()} — Powered by SciPy HiGHS Solver & ReportLab Engine
+        </footer>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
