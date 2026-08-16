@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>Array tilt study - scroll</title>
+<link rel='preconnect' href='https://fonts.googleapis.com'>
+<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+<link href='https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap' rel='stylesheet'>
+<style>
+:root{
+  --paper:#E9EDF2; --ink:#10161F; --soft:#5A6875; --rule:#C6CFDA;
+  --silicon:#16233D; --busbar:#AEBBCB; --amber:#D2851F; --live:#2E7D6B;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:auto}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:'Space Grotesk',ui-sans-serif,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+/* masthead */
+.top{padding:56px 0 40px;border-bottom:1px solid var(--rule)}
+.eyebrow{
+  font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--soft);font-family:'IBM Plex Mono',monospace;margin:0 0 18px;
+}
+.top h1{
+  margin:0;font-size:clamp(34px,5.4vw,62px);line-height:.98;
+  font-weight:700;letter-spacing:-.03em;max-width:15ch;
+}
+.top p{margin:20px 0 0;max-width:52ch;color:var(--soft);font-size:16px;line-height:1.55}
+
+/* scroll rig */
+.scrolly{position:relative;height:460vh}
+.stage{
+  position:sticky;top:0;height:100vh;min-height:560px;
+  display:grid;grid-template-columns:210px 1fr 190px;gap:0;
+  align-items:center;overflow:hidden;
+}
+.scene{position:relative;width:100%;height:100%}
+.scene svg{position:absolute;inset:0;width:100%;height:100%}
+video.clip{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:0;transition:opacity .4s ease;pointer-events:none;
+}
+video.clip.on{opacity:.5}
+
+/* left phase rail */
+.phases{list-style:none;margin:0;padding:0 0 0 4px;border-left:1px solid var(--rule)}
+.phases li{padding:14px 0 14px 18px;opacity:.32;transition:opacity .35s ease}
+.phases li.on{opacity:1}
+.phases .n{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;
+  color:var(--amber);display:block;margin-bottom:5px;
+}
+.phases .t{font-size:15px;font-weight:500;line-height:1.25;display:block}
+.phases .d{font-size:12.5px;color:var(--soft);line-height:1.45;display:block;margin-top:5px}
+
+/* right readouts */
+.meters{border-left:1px solid var(--rule);padding-left:18px}
+.meter{padding:11px 0;border-bottom:1px solid var(--rule)}
+.meter:last-child{border-bottom:0}
+.meter .k{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--soft);display:block;
+}
+.meter .v{
+  font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:500;
+  display:block;margin-top:3px;font-variant-numeric:tabular-nums;
+}
+.meter .u{font-size:11px;color:var(--soft);margin-left:3px}
+.meter.hero .v{font-size:27px;color:var(--live)}
+
+.bar{position:absolute;left:0;bottom:0;height:2px;background:var(--amber);width:0}
+
+/* footer */
+.note{padding:64px 0 90px;border-top:1px solid var(--rule)}
+.note h2{margin:0 0 14px;font-size:20px;letter-spacing:-.01em}
+.note p{margin:0 0 12px;color:var(--soft);font-size:14.5px;line-height:1.6;max-width:70ch}
+.note code{font-family:'IBM Plex Mono',monospace;font-size:13px;background:#DDE3EB;padding:2px 6px;border-radius:3px}
+
+@media (max-width:900px){
+  .stage{grid-template-columns:1fr;grid-template-rows:auto 1fr auto;padding:16px 0}
+  .phases{display:flex;overflow:hidden;border-left:0;border-bottom:1px solid var(--rule);padding:0}
+  .phases li{padding:8px 14px 12px;flex:1}
+  .phases .d{display:none}
+  .meters{display:flex;gap:14px;border-left:0;border-top:1px solid var(--rule);padding:8px 0 0;overflow:hidden}
+  .meter{border-bottom:0;flex:1;padding:4px 0}
+  .meter .v{font-size:16px}
+  .meter.hero .v{font-size:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  video.clip.on{opacity:.32}
+}
+</style>
+</head>
+<body>
+
+<header class='top'>
+  <div class='wrap'>
+    <p class='eyebrow'>Microgrid feasibility &middot; module study</p>
+    <h1>One panel, four decisions.</h1>
+    <p>Scroll drives the geometry. Tilt, sun position, angle of incidence and yield are computed live from the scroll offset, not keyframed, so the readings on the right always match the picture in the middle.</p>
+  </div>
+</header>
+
+<section class='scrolly' id='scrolly'>
+  <div class='stage'>
+
+    <ol class='phases' id='phases'>
+      <li>
+        <span class='n'>01</span>
+        <span class='t'>Site fixed</span>
+        <span class='d'>Module flat on the mounting plane. Nothing captured yet.</span>
+      </li>
+      <li>
+        <span class='n'>02</span>
+        <span class='t'>Tilt set</span>
+        <span class='d'>Rotated toward the equator until the surface normal meets the sun path.</span>
+      </li>
+      <li>
+        <span class='n'>03</span>
+        <span class='t'>Sun climbs</span>
+        <span class='d'>Incidence closes as elevation rises. Irradiance follows the cosine.</span>
+      </li>
+      <li>
+        <span class='n'>04</span>
+        <span class='t'>Yield lands</span>
+        <span class='d'>Array output integrated over the day at 78 percent performance ratio.</span>
+      </li>
+    </ol>
+
+    <div class='scene'>
+      <video class='clip' id='clip' muted playsinline preload='auto'></video>
+      <svg id='svg' viewBox='0 0 1000 620' preserveAspectRatio='xMidYMid meet' aria-label='Solar module tilting as the sun rises'>
+        <defs>
+          <linearGradient id='gDawn' x1='0' y1='0' x2='0' y2='1'>
+            <stop offset='0' stop-color='#2C3760'/>
+            <stop offset='1' stop-color='#7A6B72'/>
+          </linearGradient>
+          <linearGradient id='gNoon' x1='0' y1='0' x2='0' y2='1'>
+            <stop offset='0' stop-color='#7FA7CE'/>
+            <stop offset='1' stop-color='#D6E2EC'/>
+          </linearGradient>
+          <radialGradient id='gSun'>
+            <stop offset='0' stop-color='#FFF3D6'/>
+            <stop offset='.55' stop-color='#F2C266'/>
+            <stop offset='1' stop-color='#F2C266' stop-opacity='0'/>
+          </radialGradient>
+        </defs>
+
+        <rect x='0' y='0' width='1000' height='470' fill='url(#gDawn)'/>
+        <rect id='skyNoon' x='0' y='0' width='1000' height='470' fill='url(#gNoon)' opacity='0'/>
+
+        <circle id='sunGlow' cx='120' cy='372' r='74' fill='url(#gSun)' opacity='.85'/>
+        <circle id='sunDisc' cx='120' cy='372' r='17' fill='#FFF0CC'/>
+        <g id='rays' stroke='#F0CE86' stroke-width='1' opacity='0'></g>
+
+        <rect x='0' y='470' width='1000' height='150' fill='#D7DDE4'/>
+        <line x1='0' y1='470' x2='1000' y2='470' stroke='#9AA6B4' stroke-width='1'/>
+
+        <polygon id='shadow' points='' fill='#0E1720' opacity='.13'/>
+        <line id='strut' x1='0' y1='0' x2='0' y2='0' stroke='#6E7B8B' stroke-width='4' stroke-linecap='round'/>
+        <polygon id='frame' points='' fill='#0D1524' stroke='#8B98A9' stroke-width='2'/>
+        <g id='cells'></g>
+        <polygon id='glare' points='' fill='#EAF3FF' opacity='0'/>
+
+        <g id='dim' stroke='#D2851F' fill='#D2851F' opacity='0'>
+          <path id='arc' d='' fill='none' stroke-width='1.5'/>
+          <text id='arcLabel' x='0' y='0' font-family='IBM Plex Mono, monospace' font-size='15' font-weight='500'></text>
+        </g>
+      </svg>
+    </div>
+
+    <div class='meters'>
+      <div class='meter'><span class='k'>Module tilt</span><span class='v'><span id='mTilt'>0.0</span><span class='u'>deg</span></span></div>
+      <div class='meter'><span class='k'>Sun elevation</span><span class='v'><span id='mElev'>8.0</span><span class='u'>deg</span></span></div>
+      <div class='meter'><span class='k'>Incidence</span><span class='v'><span id='mInc'>82.0</span><span class='u'>deg</span></span></div>
+      <div class='meter'><span class='k'>Plane irradiance</span><span class='v'><span id='mIrr'>0</span><span class='u'>W/m2</span></span></div>
+      <div class='meter hero'><span class='k'>Array yield</span><span class='v'><span id='mYld'>0.0</span><span class='u'>kWh/day</span></span></div>
+    </div>
+
+    <div class='bar' id='bar'></div>
+  </div>
+</section>
+
+<footer class='note'>
+  <div class='wrap'>
+    <h2>Dropping in the generated clip</h2>
+    <p>The scene is pure SVG, so the page runs with no assets. To put a rendered clip behind it, set <code>CLIP_URL</code> at the top of the script to an mp4 and the video is scrubbed by scroll position rather than played, which is what makes it feel welded to the page.</p>
+    <p>Encode the clip with dense keyframes or seeking will stutter: <code>ffmpeg -i in.mp4 -g 1 -c:v libx264 -crf 22 -an out.mp4</code></p>
+    <p>Figures are illustrative: 24 modules at 550 W, 4.9 peak sun hours, 0.78 performance ratio. Wire the readouts to the real sizing endpoint to make them true.</p>
+  </div>
+</footer>
+
+<script>
+var CLIP_URL = '';
+
+var TILT_MAX = 35, ELEV_MIN = 8, ELEV_MAX = 72;
+var YIELD_MAX = 50.4, W = 380, L = 250, CX = 500, CY = 470;
+var COLS = 6, ROWS = 4;
+
+var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var scrolly = document.getElementById('scrolly');
+var phases = document.getElementById('phases').children;
+var cellsG = document.getElementById('cells');
+var raysG = document.getElementById('rays');
+var clip = document.getElementById('clip');
+var el = {
+  skyNoon: document.getElementById('skyNoon'),
+  sunGlow: document.getElementById('sunGlow'),
+  sunDisc: document.getElementById('sunDisc'),
+  shadow: document.getElementById('shadow'),
+  strut: document.getElementById('strut'),
+  frame: document.getElementById('frame'),
+  glare: document.getElementById('glare'),
+  dim: document.getElementById('dim'),
+  arc: document.getElementById('arc'),
+  arcLabel: document.getElementById('arcLabel'),
+  bar: document.getElementById('bar'),
+  mTilt: document.getElementById('mTilt'),
+  mElev: document.getElementById('mElev'),
+  mInc: document.getElementById('mInc'),
+  mIrr: document.getElementById('mIrr'),
+  mYld: document.getElementById('mYld')
+};
+
+var NS = 'http://www.w3.org/2000/svg';
+var cellNodes = [];
+for (var r = 0; r < ROWS; r++) {
+  for (var c = 0; c < COLS; c++) {
+    var poly = document.createElementNS(NS, 'polygon');
+    poly.setAttribute('fill', '#1B2A46');
+    poly.setAttribute('stroke', '#5E6E85');
+    poly.setAttribute('stroke-width', '.75');
+    cellsG.appendChild(poly);
+    cellNodes.push({ node: poly, r: r, c: c });
+  }
+}
+for (var i = 0; i < 5; i++) { raysG.appendChild(document.createElementNS(NS, 'line')); }
+
+function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+function seg(p, a, b) { return clamp((p - a) / (b - a), 0, 1); }
+function ease(x) { return x * x * (3 - 2 * x); }
+function rad(d) { return d * Math.PI / 180; }
+
+function proj(x, y, z) { return [CX + x + 0.5 * y, CY - 0.3 * y - z]; }
+function pt(x, u, t) { return proj(x, u * Math.cos(rad(t)), u * Math.sin(rad(t))); }
+function pts(list) {
+  var out = [];
+  for (var i = 0; i < list.length; i++) { out.push(list[i][0].toFixed(1) + ',' + list[i][1].toFixed(1)); }
+  return out.join(' ');
+}
+
+function render(p) {
+  var t = TILT_MAX * ease(seg(p, 0.12, 0.46));
+  var sp = ease(seg(p, 0.02, 0.80));
+  var elev = ELEV_MIN + (ELEV_MAX - ELEV_MIN) * sp;
+  var inc = Math.abs(90 - (elev + t));
+  var cosI = Math.max(0, Math.cos(rad(inc)));
+  var irr = cosI * 1000 * 0.86 * clamp(sp * 1.4, 0, 1);
+  var yld = YIELD_MAX * ease(seg(p, 0.55, 0.98));
+
+  var half = W / 2;
+  var corners = [pt(-half, 0, t), pt(half, 0, t), pt(half, L, t), pt(-half, L, t)];
+  el.frame.setAttribute('points', pts(corners));
+
+  for (var i = 0; i < cellNodes.length; i++) {
+    var cn = cellNodes[i];
+    var u0 = cn.r * (L / ROWS) + 7, u1 = (cn.r + 1) * (L / ROWS) - 7;
+    var x0 = -half + cn.c * (W / COLS) + 7, x1 = -half + (cn.c + 1) * (W / COLS) - 7;
+    cn.node.setAttribute('points', pts([pt(x0, u0, t), pt(x1, u0, t), pt(x1, u1, t), pt(x0, u1, t)]));
+    var lit = clamp(cosI * 1.15 - cn.r * 0.03, 0, 1);
+    var g = Math.round(26 + 92 * lit), b = Math.round(46 + 122 * lit);
+    cn.node.setAttribute('fill', 'rgb(' + Math.round(16 + 44 * lit) + ',' + g + ',' + b + ')');
+  }
+
+  var sl = clamp(Math.sin(rad(t)) * L / Math.tan(rad(Math.max(elev, 6))), 0, 900);
+  var sh = [];
+  for (var k = 0; k < corners.length; k++) {
+    var uu = (k === 2 || k === 3) ? L : 0;
+    var yy = uu * Math.cos(rad(t)) + (uu > 0 ? sl : 0);
+    sh.push(proj(k === 1 || k === 2 ? half : -half, yy, 0));
+  }
+  el.shadow.setAttribute('points', pts(sh));
+  el.shadow.setAttribute('opacity', (0.05 + 0.13 * sp).toFixed(3));
+
+  var top = pt(0, L, t), base = proj(0, L * Math.cos(rad(t)), 0);
+  el.strut.setAttribute('x1', top[0]); el.strut.setAttribute('y1', top[1]);
+  el.strut.setAttribute('x2', base[0]); el.strut.setAttribute('y2', base[1]);
+  el.strut.setAttribute('opacity', (t > 1 ? 1 : 0).toString());
+
+  var sunX = 120 + 420 * sp;
+  var sunY = 420 - 330 * Math.sin(rad(elev)) / Math.sin(rad(ELEV_MAX));
+  el.sunGlow.setAttribute('cx', sunX); el.sunGlow.setAttribute('cy', sunY);
+  el.sunDisc.setAttribute('cx', sunX); el.sunDisc.setAttribute('cy', sunY);
+  el.sunGlow.setAttribute('r', (58 + 30 * sp).toFixed(1));
+  el.skyNoon.setAttribute('opacity', sp.toFixed(3));
+
+  var mid = pt(0, L / 2, t);
+  raysG.setAttribute('opacity', (0.15 + 0.6 * cosI * sp).toFixed(3));
+  for (var j = 0; j < raysG.children.length; j++) {
+    var off = (j - 2) * 46, ln = raysG.children[j];
+    ln.setAttribute('x1', sunX + off * 0.5); ln.setAttribute('y1', sunY + 16);
+    ln.setAttribute('x2', mid[0] + off); ln.setAttribute('y2', mid[1] + 6);
+  }
+
+  el.glare.setAttribute('points', pts([pt(-half, L * 0.52, t), pt(half, L * 0.34, t), pt(half, L, t), pt(-half, L, t)]));
+  el.glare.setAttribute('opacity', (cosI * 0.3 * sp).toFixed(3));
+
+  var showDim = seg(p, 0.16, 0.30) * (1 - seg(p, 0.52, 0.62));
+  el.dim.setAttribute('opacity', showDim.toFixed(3));
+  var a0 = proj(-half - 26, 0, 0), a1 = pt(-half - 26, 96, t);
+  el.arc.setAttribute('d', 'M ' + a0[0].toFixed(1) + ' ' + a0[1].toFixed(1) + ' A 96 96 0 0 1 ' + a1[0].toFixed(1) + ' ' + a1[1].toFixed(1));
+  el.arcLabel.setAttribute('x', a0[0] - 74); el.arcLabel.setAttribute('y', a0[1] - 26);
+  el.arcLabel.textContent = t.toFixed(1) + ' deg';
+
+  el.mTilt.textContent = t.toFixed(1);
+  el.mElev.textContent = elev.toFixed(1);
+  el.mInc.textContent = inc.toFixed(1);
+  el.mIrr.textContent = Math.round(irr).toString();
+  el.mYld.textContent = yld.toFixed(1);
+  el.bar.style.width = (p * 100).toFixed(2) + '%';
+
+  var active = p < 0.24 ? 0 : p < 0.48 ? 1 : p < 0.72 ? 2 : 3;
+  for (var q = 0; q < phases.length; q++) { phases[q].classList.toggle('on', q === active); }
+
+  if (clip.dataset.ready === '1' && clip.duration) {
+    var want = clamp(p, 0, 0.999) * clip.duration;
+    if (Math.abs(clip.currentTime - want) > 0.02) { clip.currentTime = want; }
+  }
+}
+
+function target() {
+  var rect = scrolly.getBoundingClientRect();
+  var span = scrolly.offsetHeight - window.innerHeight;
+  return span > 0 ? clamp(-rect.top / span, 0, 1) : 0;
+}
+
+var cur = 0, want = 0, ticking = false;
+function loop() {
+  cur += (want - cur) * (reduce ? 1 : 0.14);
+  if (Math.abs(want - cur) < 0.0002) { cur = want; ticking = false; } else { requestAnimationFrame(loop); }
+  render(cur);
+}
+function onScroll() {
+  want = target();
+  if (!ticking) { ticking = true; requestAnimationFrame(loop); }
+}
+
+if (CLIP_URL) {
+  clip.src = CLIP_URL;
+  clip.addEventListener('loadeddata', function () {
+    clip.dataset.ready = '1';
+    clip.classList.add('on');
+    render(cur);
+  });
+}
+
+window.addEventListener('scroll', onScroll, { passive: true });
+window.addEventListener('resize', onScroll);
+render(0);
+onScroll();
+</script>
+</body>
+</html>

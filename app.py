@@ -53,6 +53,10 @@ cache = Cache(app, config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT":
 Talisman(app, force_https=os.environ.get("FORCE_HTTPS", "false").lower() == "true")
 CORS(app, origins=[origin.strip() for origin in os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000").split(",")])
 
+from site_scan import register_site_scan
+
+register_site_scan(app, cache=cache, limiter=limiter)
+
 NASA_POWER_URL = "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN&community=RE&longitude={lon}&latitude={lat}&format=JSON"
 OPEN_METEO_URL = "https://archive-api.open-meteo.com/v1/archive?latitude={lat}&longitude={lon}&start_date=2023-01-01&end_date=2023-12-31&hourly=wind_speed_10m"
 

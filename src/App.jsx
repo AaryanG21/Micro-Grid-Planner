@@ -141,12 +141,36 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
     }
   }, [auth.token, loadPortfolio]);
 
+  const [siteScan, setSiteScan] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanRadius, setScanRadius] = useState(50);
+
+  const runSiteScan = async (lat, lon, radius) => {
+    const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
+    setScanning(true);
+    setSiteScan(null);
+    try {
+      const res = await axios.post(`${API_URL}/api/site-scan`, { lat, lon, radius_m: radius });
+      setSiteScan(res.data);
+      if (res.data.building_count > 0) {
+        setFormData((current) => ({
+          ...current,
+          buildings: res.data.building_count,
+          load: Math.max(1, Math.round(res.data.estimated_daily_kwh))
+        }));
+      }
+    } catch (err) {
+      setSiteScan({ error: err?.response?.data?.error || 'Site scan unavailable' });
+    } finally {
+      setScanning(false);
+    }
+  };
+
   const handleMapClick = (latlng) => {
-    setFormData((current) => ({
-      ...current,
-      lat: parseFloat(latlng.lat.toFixed(4)),
-      lon: parseFloat(latlng.lng.toFixed(4))
-    }));
+    const lat = parseFloat(latlng.lat.toFixed(4));
+    const lon = parseFloat(latlng.lng.toFixed(4));
+    setFormData((current) => ({ ...current, lat, lon }));
+    runSiteScan(lat, lon, scanRadius);
   };
 
   const handleChange = (e) => {
@@ -752,6 +776,115 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
               <div className="text-[10px] text-slate-400 mt-1 flex justify-between font-mono">
                 <span>Lat: {formData.lat}</span>
                 <span>Lon: {formData.lon}</span>
+              </div>
+
+              {/* SITE SCAN: buildings + ML demand estimate for the clicked point */}
+              <div className="mt-2 p-3 rounded-lg border border-blue-200 bg-blue-50/60 text-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-bold text-blue-900 uppercase tracking-wider text-[10px]">
+                    Site Scan
+                  </span>
+                  <select
+                    value={scanRadius}
+                    onChange={(e) => {
+                      const r = Number(e.target.value);
+                      setScanRadius(r);
+                      runSiteScan(formData.lat, formData.lon, r);
+                    }}
+                    className="text-[10px] bg-white border border-blue-200 rounded px-1 py-0.5 text-blue-900"
+                  >
+                    <option value={50}>50 m</option>
+                    <option value={100}>100 m</option>
+                    <option value={250}>250 m</option>
+                    <option value={500}>500 m</option>
+                  </select>
+                </div>
+
+                {scanning && (
+                  <div className="text-blue-700 animate-pulse">Scanning OpenStreetMap…</div>
+                )}
+
+                {!scanning && !siteScan && (
+                  <div className="text-slate-500">Click the map to scan buildings nearby.</div>
+                )}
+
+                {!scanning && siteScan?.error && (
+                  <div className="text-amber-700">{siteScan.error}</div>
+                )}
+
+                {!scanning && siteScan && !siteScan.error && (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-white rounded p-2 border border-blue-100">
+                        <div className="text-[9px] text-slate-500 uppercase">Buildings</div>
+                        <div className="text-base font-bold text-slate-800">{siteScan.building_count}</div>
+                      </div>
+                      <div className="bg-white rounded p-2 border border-blue-100">
+                        <div className="text-[9px] text-slate-500 uppercase">Est. Demand</div>
+                        <div className="text-base font-bold text-slate-800">
+                          {siteScan.estimated_daily_kwh} <span className="text-[10px] font-normal">kWh/day</span>
+                        </div>
+                      </div>
+                      <div className="bg-white rounded p-2 border border-blue-100">
+                        <div className="text-[9px] text-slate-500 uppercase">Peak Load</div>
+                        <div className="text-base font-bold text-slate-800">
+                          {siteScan.profile ? siteScan.profile.peak_kw : '—'} <span className="text-[10px] font-normal">kW</span>
+                        </div>
+                      </div>
+                      <div className="bg-white rounded p-2 border border-blue-100">
+                        <div className="text-[9px] text-slate-500 uppercase">Roof PV Potential</div>
+                        <div className="text-base font-bold text-slate-800">
+                          {siteScan.roof_pv_potential_kwp} <span className="text-[10px] font-normal">kWp</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {siteScan.mix && Object.keys(siteScan.mix).length > 0 && (
+                      <div className="bg-white rounded p-2 border border-blue-100 space-y-1">
+                        {Object.entries(siteScan.mix).map(([key, m]) => (
+                          <div key={key} className="flex justify-between text-[10px] text-slate-600">
+                            <span>{m.label} × {m.count}</span>
+                            <span className="font-mono">{m.kwh_day} kWh/day</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {siteScan.profile && (
+                      <div className="bg-white rounded p-2 border border-blue-100">
+                        <div className="flex items-end gap-[2px] h-10">
+                          {siteScan.profile.hourly_kw.map((v, i) => {
+                            const max = Math.max(...siteScan.profile.hourly_kw) || 1;
+                            return (
+                              <div
+                                key={i}
+                                title={`${i}:00 — ${v} kW`}
+                                style={{ height: `${Math.max(4, (v / max) * 100)}%` }}
+                                className="flex-1 bg-blue-400 rounded-sm"
+                              />
+                            );
+                          })}
+                        </div>
+                        <div className="flex justify-between text-[9px] text-slate-400 mt-1 font-mono">
+                          <span>00:00</span>
+                          <span>peak {siteScan.profile.peak_hour}:00</span>
+                          <span>23:00</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {siteScan.note && <div className="text-amber-700">{siteScan.note}</div>}
+
+                    <div className="text-[9px] text-slate-500 leading-snug border-t border-blue-100 pt-1">
+                      Buildings from {siteScan.source}. Demand is estimated from per-building
+                      benchmarks, not measured — edit the fields below to override. Hourly shape
+                      predicted by {siteScan.profile ? siteScan.profile.method : 'n/a'}
+                      {siteScan.profile?.model_test_mape_pct
+                        ? ` (test MAPE ${siteScan.profile.model_test_mape_pct.toFixed(1)}%)`
+                        : ''}.
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
