@@ -58,19 +58,13 @@ from site_scan import register_site_scan
 register_site_scan(app, cache=cache, limiter=limiter)
 
 NASA_POWER_URL = "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN&community=RE&longitude={lon}&latitude={lat}&format=JSON"
-OPEN_METEO_URL = "https://archive-api.open-meteo.com/v1/archive?latitude={lat}&longitude={lon}&start_date=2023-01-01&end_date=2023-12-31&hourly=wind_speed_10m&windspeed_unit=ms"
+OPEN_METEO_URL = "https://archive-api.open-meteo.com/v1/archive?latitude={lat}&longitude={lon}&start_date=2023-01-01&end_date=2023-12-31&hourly=wind_speed_10m"
 
 DEFAULT_ASSUMPTIONS = {
     "pv_cost_per_kw": 1200.0, "wind_cost_per_kw": 1500.0, "biomass_cost_per_kw": 2000.0,
     "battery_cost_per_kwh": 400.0, "inverter_cost_per_kw": 200.0, "generator_cost_per_kw": 300.0,
     "fuel_cost": 1.20, "discount_rate": 0.08, "project_life_years": 20,
     "battery_dod": 0.90, "battery_roundtrip_efficiency": 0.90, "performance_ratio": 0.75,
-    # Floor on each renewable's share of daily load, so a single very cheap
-    # resource (e.g. strong, steady wind) can't drive the LP to a 100%
-    # single-source design. A pure cost-minimising LP always picks a corner
-    # solution otherwise; real systems diversify for resilience against any
-    # one resource underperforming (a calm week, a cloudy spell).
-    "min_solar_share": 0.15, "min_wind_share": 0.15,
 }
 
 
@@ -271,26 +265,11 @@ def size_system(plan, profile_values=None):
         assumptions["biomass_cost_per_kw"] + 40 * 20,
     ]
     max_pv = plan.area_sqm / 5
-
-    # Diversification floor: each of solar and wind must cover at least
-    # min_*_share of the daily load, whenever the resource can physically
-    # deliver that (enough irradiance/wind, and enough roof area for PV).
-    # Without this an LP minimising capex per unit generation collapses to
-    # whichever single source is cheapest per kWh at this site, e.g. a very
-    # windy location gets 0% solar even though diversifying reduces the risk
-    # of a multi-day shortfall if that one resource underperforms.
-    pv_min = 0.0
-    if pv_kwh_per_kw_day > 0.05:
-        pv_min = min(max_pv, assumptions["min_solar_share"] * load / pv_kwh_per_kw_day)
-    wind_min = 0.0
-    if daily_generation[1] > 0.05:
-        wind_min = assumptions["min_wind_share"] * load / daily_generation[1]
-
     result = linprog(
         capital_costs,
         A_ub=[[-daily_generation[0], -daily_generation[1], -daily_generation[2]], [-daily_generation[0], -daily_generation[1], 0]],
         b_ub=[-load, -(plan.renewables_target * load)],
-        bounds=[(pv_min, max_pv), (wind_min, None), (0, None)], method="highs",
+        bounds=[(0, max_pv), (0, None), (0, None)], method="highs",
     )
     if not result.success:
         raise ValueError("Unable to find a feasible system design")
