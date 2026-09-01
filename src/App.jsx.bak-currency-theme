@@ -34,22 +34,20 @@ function LocationMarker({ position, setPosition }) {
 
 // Commercial Hardware Catalog Presets
 const HARDWARE_CATALOG = {
-  // Costs converted from the original USD catalog at ~95.5 INR/USD (literal FX
-  // conversion, not re-benchmarked against Indian hardware pricing)
   pv: [
-    { id: 'generic_pv', name: 'Generic Tier-1 Solar PV', cost: 114600, spec: '380W Monocrystalline' },
-    { id: 'sunpower', name: 'SunPower Maxeon 6 High-Efficiency', cost: 138475, spec: '440W High Efficiency (22.8%)' },
-    { id: 'first_solar', name: 'First Solar Series 7 Utility PV', cost: 105050, spec: '535W Thin-Film Utility' },
+    { id: 'generic_pv', name: 'Generic Tier-1 Solar PV', cost: 1200, spec: '380W Monocrystalline' },
+    { id: 'sunpower', name: 'SunPower Maxeon 6 High-Efficiency', cost: 1450, spec: '440W High Efficiency (22.8%)' },
+    { id: 'first_solar', name: 'First Solar Series 7 Utility PV', cost: 1100, spec: '535W Thin-Film Utility' },
   ],
   wind: [
-    { id: 'generic_wind', name: 'Generic Commercial Wind Turbine', cost: 143250, spec: '1.5MW Onshore' },
-    { id: 'vestas', name: 'Vestas V90 2.0 MW Turbine', cost: 160440, spec: '2.0MW 90m Rotor Onshore' },
-    { id: 'ge_vernova', name: 'GE Vernova 2.8MW Utility Wind', cost: 135610, spec: '2.8MW High-Yield Onshore' },
+    { id: 'generic_wind', name: 'Generic Commercial Wind Turbine', cost: 1500, spec: '1.5MW Onshore' },
+    { id: 'vestas', name: 'Vestas V90 2.0 MW Turbine', cost: 1680, spec: '2.0MW 90m Rotor Onshore' },
+    { id: 'ge_vernova', name: 'GE Vernova 2.8MW Utility Wind', cost: 1420, spec: '2.8MW High-Yield Onshore' },
   ],
   battery: [
-    { id: 'generic_bess', name: 'Generic Lithium LFP Battery', cost: 38200, spec: 'LFP 90% Round-trip' },
-    { id: 'tesla_megapack', name: 'Tesla Megapack 2XL Utility BESS', cost: 42020, spec: '3.9 MWh LFP Liquid Cooled' },
-    { id: 'byd_bess', name: 'BYD Chez Commercial Energy Storage', cost: 35812, spec: 'High Density LFP Modular' },
+    { id: 'generic_bess', name: 'Generic Lithium LFP Battery', cost: 400, spec: 'LFP 90% Round-trip' },
+    { id: 'tesla_megapack', name: 'Tesla Megapack 2XL Utility BESS', cost: 440, spec: '3.9 MWh LFP Liquid Cooled' },
+    { id: 'byd_bess', name: 'BYD Chez Commercial Energy Storage', cost: 375, spec: 'High Density LFP Modular' },
   ]
 };
 
@@ -90,7 +88,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
     load: 1000,
     buildings: 15,
     area_sqm: 5000,
-    fuel_cost: 114.6, // was $1.20/L, converted at ~95.5 INR/USD
+    fuel_cost: 1.2,
     renewables_target: 0.95,
     autonomy_days: 1,
     load_factor: 0.6,
@@ -113,22 +111,21 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
 
   // Feature 4: Time-of-Use (TOU) Tariff State
   const [touTariff, setTouTariff] = useState({
-    peakRate: 33.42, // was $0.35/kWh, converted at ~95.5 INR/USD (a literal FX
-                      // conversion, not a locally-calibrated Indian tariff -- edit freely)
-    offPeakRate: 11.46, // was $0.12/kWh, same conversion note as above
+    peakRate: 0.35, // $/kWh
+    offPeakRate: 0.12, // $/kWh
     peakHours: 6 // hours/day
   });
 
   // Feature 5: EV Fleet & Carbon Credit State
   const [evCarbon, setEvCarbon] = useState({
     evChargersCount: 4, // 50kW DC fast chargers
-    carbonCreditPrice: 4297.5 // was $45/tonne CO2, converted at ~95.5 INR/USD
+    carbonCreditPrice: 45 // $/tonne CO2
   });
 
   const loadPortfolio = React.useCallback(async () => {
     if (!auth.token) return;
     try {
-      const API_URL = process.env.REACT_APP_API_URL || '';
+      const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
       const response = await axios.get(`${API_URL}/api/portfolio`, {
         headers: { Authorization: `Bearer ${auth.token}` }
       });
@@ -149,7 +146,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
   const [scanRadius, setScanRadius] = useState(50);
 
   const runSiteScan = async (lat, lon, radius) => {
-    const API_URL = process.env.REACT_APP_API_URL || '';
+    const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
     setScanning(true);
     setSiteScan(null);
     try {
@@ -257,7 +254,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
       load: formData.load + evAddedDailyLoad
     };
 
-    const API_URL = process.env.REACT_APP_API_URL || '';
+    const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
 
     try {
       let res;
@@ -296,7 +293,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
     setAuthSuccess('');
     setAuthLoading(true);
 
-    const API_URL = process.env.REACT_APP_API_URL || '';
+    const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
 
     try {
       if (authMode === 'register') {
@@ -350,7 +347,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
       return;
     }
     try {
-      const API_URL = process.env.REACT_APP_API_URL || '';
+      const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
       const response = await axios.post(`${API_URL}/api/projects`, {
         name: `Microgrid Site (${formData.lat}°, ${formData.lon}°)`,
         lat: formData.lat,
@@ -368,7 +365,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
   const runSensitivity = async () => {
     setError('');
     try {
-      const API_URL = process.env.REACT_APP_API_URL || '';
+      const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
       let response;
       if (auth.token && projectId) {
         response = await axios.post(`${API_URL}/api/projects/${projectId}/sensitivity`, {
@@ -392,7 +389,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
   const downloadReport = async () => {
     setError('');
     try {
-      const API_URL = process.env.REACT_APP_API_URL || '';
+      const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
       let response;
       if (auth.token && projectId && analysisId) {
         response = await axios.get(`${API_URL}/api/projects/${projectId}/report/${analysisId}.pdf`, {
@@ -416,18 +413,14 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
   };
 
   const formatMoney = (val) => {
-    if (!val) return '₹0';
-    const abs = Math.abs(val);
-    if (abs >= 10000000) {
-      return `₹${(val / 10000000).toFixed(2)} Cr`;
+    if (!val) return '$0';
+    if (Math.abs(val) >= 1000000) {
+      return `$${(val / 1000000).toFixed(2)}M`;
     }
-    if (abs >= 100000) {
-      return `₹${(val / 100000).toFixed(2)} L`;
+    if (Math.abs(val) >= 1000) {
+      return `$${(val / 1000).toFixed(1)}K`;
     }
-    if (abs >= 1000) {
-      return `₹${(val / 1000).toFixed(1)}K`;
-    }
-    return `₹${val.toFixed(1)}`;
+    return `$${val.toFixed(1)}`;
   };
 
   // Helper calculations for Feature 3: Debt Schedule
@@ -998,9 +991,6 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
                         <div className="text-base font-bold text-slate-800">
                           {siteScan.roof_pv_potential_kwp} <span className="text-[10px] font-normal">kWp</span>
                         </div>
-                        <div className="text-[9px] text-emerald-700 font-semibold mt-0.5">
-                          ≈ {Math.ceil((siteScan.roof_pv_potential_kwp * 1000) / 550).toLocaleString()} panels @ 550 W
-                        </div>
                       </div>
                     </div>
 
@@ -1067,7 +1057,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
                   className="w-full bg-white border border-slate-200 rounded p-1.5 text-xs text-slate-800"
                 >
                   {HARDWARE_CATALOG.pv.map(h => (
-                    <option key={h.id} value={h.id}>{h.name} (₹{h.cost.toLocaleString('en-IN')}/kW)</option>
+                    <option key={h.id} value={h.id}>{h.name} (${h.cost}/kW)</option>
                   ))}
                 </select>
               </div>
@@ -1080,7 +1070,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
                   className="w-full bg-white border border-slate-200 rounded p-1.5 text-xs text-slate-800"
                 >
                   {HARDWARE_CATALOG.wind.map(h => (
-                    <option key={h.id} value={h.id}>{h.name} (₹{h.cost.toLocaleString('en-IN')}/kW)</option>
+                    <option key={h.id} value={h.id}>{h.name} (${h.cost}/kW)</option>
                   ))}
                 </select>
               </div>
@@ -1093,7 +1083,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
                   className="w-full bg-white border border-slate-200 rounded p-1.5 text-xs text-slate-800"
                 >
                   {HARDWARE_CATALOG.battery.map(h => (
-                    <option key={h.id} value={h.id}>{h.name} (₹{h.cost.toLocaleString('en-IN')}/kWh)</option>
+                    <option key={h.id} value={h.id}>{h.name} (${h.cost}/kWh)</option>
                   ))}
                 </select>
               </div>
@@ -1167,7 +1157,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
               <summary className="cursor-pointer text-xs font-bold text-slate-600 select-none">Advanced Planning Assumptions</summary>
               <div className="mt-3 space-y-3">
                 <label className="block text-xs text-slate-500">
-                  Fuel cost (₹/L)
+                  Fuel cost ($/L)
                   <input type="number" step="0.01" min="0" name="fuel_cost" value={formData.fuel_cost} onChange={handleChange} className="mt-1 w-full bg-white border border-slate-200 rounded p-2 text-slate-800" />
                 </label>
                 <label className="block text-xs text-slate-500">
@@ -1668,7 +1658,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
 
                     <div className="space-y-3 pt-2">
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Grid Peak Tariff (₹/kWh)</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Grid Peak Tariff ($/kWh)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -1678,7 +1668,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Grid Off-Peak Tariff (₹/kWh)</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Grid Off-Peak Tariff ($/kWh)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -1705,7 +1695,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
 
                     <div className="space-y-3 pt-2">
                       <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-1">Carbon Credit Market Price (₹/tonne CO2)</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-1">Carbon Credit Market Price ($/tonne CO2)</label>
                         <input
                           type="number"
                           step="5"

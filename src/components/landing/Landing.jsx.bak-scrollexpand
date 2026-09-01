@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CountUp from 'react-countup';
 import { Zap, Cpu, CreditCard, Clock, Leaf, ArrowRight } from 'lucide-react';
 import { useReducedMotionSafe } from '../../hooks/useReducedMotionSafe';
+import SolarAssemblyIntro from './SolarAssemblyIntro';
 import OrbitRing from './OrbitRing';
 import FeatureBlock from './FeatureBlock';
 import MiniCalculator from './MiniCalculator';
-import Hero from './Hero';
 import App from '../../App';
 
 export default function Landing() {
@@ -18,7 +18,7 @@ export default function Landing() {
   const handleStart = (targetView = 'dashboard', authMode = 'login') => {
     setAppTargetView(targetView);
     setAppTargetAuthMode(authMode);
-    setPhase('app');
+    setPhase('intro');
   };
 
   const handleNavigateHome = () => {
@@ -42,6 +42,10 @@ export default function Landing() {
     );
   }
 
+  if (phase === 'intro') {
+    return <SolarAssemblyIntro onComplete={() => setPhase('app')} />;
+  }
+
   return (
     <AnimatePresence>
       <motion.div
@@ -53,7 +57,7 @@ export default function Landing() {
         <header className="w-full border-b border-slate-800 bg-slate-950 sticky top-0 z-40 px-8">
           <div className="max-w-7xl mx-auto h-20 flex items-center justify-between">
             <div className="flex items-center space-x-4 cursor-pointer" onClick={() => handleStart('dashboard')}>
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-emerald-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
                 <Zap className="w-6 h-6 text-slate-950" />
               </div>
               <div>
@@ -76,7 +80,7 @@ export default function Landing() {
                 onClick={() => handleStart('login', 'register')}
                 whileHover={prefersReduced ? undefined : { scale: 1.05 }}
                 whileTap={prefersReduced ? undefined : { scale: 0.95 }}
-                className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-slate-950 font-bold font-body rounded-xl transition text-sm flex items-center space-x-2 cursor-pointer"
+                className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold font-body rounded-xl transition text-sm flex items-center space-x-2 cursor-pointer"
               >
                 <span>Create Account</span>
                 <ArrowRight className="w-4 h-4" />
@@ -85,22 +89,40 @@ export default function Landing() {
           </div>
         </header>
 
-        {/* Hero Section: scroll-driven expand, revealing Sign In at full-bleed */}
-        <Hero
-          onSignIn={() => handleStart('login', 'login')}
-          onTryDemo={() => handleStart('dashboard')}
-        />
+        {/* Hero Section */}
+        <section className="px-8 py-24 max-w-5xl mx-auto text-center flex flex-col items-center">
+          <div className="inline-flex items-center space-x-2 px-4 py-2 bg-slate-900 border border-slate-800 rounded-full text-xs font-semibold font-body text-emerald-400 mb-8">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span>Commercial Microgrid Feasibility & Dispatch Engine</span>
+          </div>
 
-        {/* OrbitRing Section (Primary Loop Visual) -- appears immediately after the
-            hero image fully expands and releases, per the requested flow */}
-        <div className="w-full flex items-center justify-center py-16 border-y border-amber-900/20 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-          <OrbitRing size={340} />
-        </div>
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black font-heading text-white tracking-tight leading-tight mb-8">
+            Complete Microgrid Feasibility, Financing & Dispatch Platform
+          </h1>
 
-        <section className="px-8 pt-16 pb-8 max-w-5xl mx-auto text-center flex flex-col items-center bg-gradient-to-b from-slate-950 to-slate-900">
           <p className="text-slate-400 font-body text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed mb-12">
             Model hybrid solar, wind, and battery storage microgrids. Simulate 24-hour dispatch curves, calculate TOU grid arbitrage, and generate executive PDF reports.
           </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md mb-16">
+            <motion.button
+              onClick={() => handleStart('dashboard')}
+              whileHover={prefersReduced ? undefined : { scale: 1.05 }}
+              whileTap={prefersReduced ? undefined : { scale: 0.95 }}
+              className="w-full sm:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-base md:text-lg font-extrabold font-body rounded-2xl transition flex items-center justify-center space-x-3 cursor-pointer"
+            >
+              <span>Try Interactive Simulator</span>
+              <ArrowRight className="w-5 h-5" />
+            </motion.button>
+            <motion.button
+              onClick={() => handleStart('login', 'register')}
+              whileHover={prefersReduced ? undefined : { scale: 1.05 }}
+              whileTap={prefersReduced ? undefined : { scale: 0.95 }}
+              className="w-full sm:w-auto px-8 py-4 border border-slate-700 hover:border-slate-500 bg-slate-900 text-slate-200 text-base md:text-lg font-bold font-body rounded-2xl transition cursor-pointer"
+            >
+              Sign Up / Register
+            </motion.button>
+          </div>
 
           {/* 5 Capability Highlights (No Emoji, Lucide Icons, 8px grid) */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full max-w-4xl pt-8 border-t border-slate-800">
@@ -127,10 +149,15 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* OrbitRing Section (Primary Loop Visual) */}
+        <div className="w-full flex items-center justify-center py-16 border-y border-slate-900 bg-slate-950">
+          <OrbitRing size={340} />
+        </div>
+
         {/* Feature Blocks Section */}
         <section className="px-8 py-24 max-w-7xl mx-auto w-full">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold font-heading bg-gradient-to-r from-amber-300 via-orange-300 to-emerald-300 bg-clip-text text-transparent mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold font-heading text-white mb-4">
               Architectural Engine Modules
             </h2>
             <p className="text-slate-400 font-body text-base sm:text-lg">
@@ -239,8 +266,7 @@ export default function Landing() {
               viewport={{ once: true }}
             >
               <div className="text-3xl sm:text-4xl md:text-5xl font-black font-heading text-emerald-400 mb-2">
-                {/* Converted at ~95.5 INR/USD (see README note); a purely illustrative figure, not a market-calibrated one */}
-                &#8377;<CountUp end={154245870} duration={2.5} separator="," />
+                $<CountUp end={1615140} duration={2.5} separator="," />
               </div>
               <div className="text-slate-300 font-semibold font-body text-base mb-2">
                 5-Year Savings Projection
@@ -295,7 +321,7 @@ export default function Landing() {
             onClick={() => handleStart('dashboard')}
             whileHover={prefersReduced ? undefined : { scale: 1.05 }}
             whileTap={prefersReduced ? undefined : { scale: 0.95 }}
-            className="px-8 py-4 bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-slate-950 text-lg font-extrabold font-body rounded-2xl transition flex items-center space-x-3 cursor-pointer"
+            className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-lg font-extrabold font-body rounded-2xl transition flex items-center space-x-3 cursor-pointer"
           >
             <span>Try Interactive Simulator</span>
             <ArrowRight className="w-5 h-5" />

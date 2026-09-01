@@ -128,7 +128,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
   const loadPortfolio = React.useCallback(async () => {
     if (!auth.token) return;
     try {
-      const API_URL = process.env.REACT_APP_API_URL || '';
+      const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
       const response = await axios.get(`${API_URL}/api/portfolio`, {
         headers: { Authorization: `Bearer ${auth.token}` }
       });
@@ -149,7 +149,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
   const [scanRadius, setScanRadius] = useState(50);
 
   const runSiteScan = async (lat, lon, radius) => {
-    const API_URL = process.env.REACT_APP_API_URL || '';
+    const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
     setScanning(true);
     setSiteScan(null);
     try {
@@ -257,7 +257,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
       load: formData.load + evAddedDailyLoad
     };
 
-    const API_URL = process.env.REACT_APP_API_URL || '';
+    const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
 
     try {
       let res;
@@ -296,7 +296,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
     setAuthSuccess('');
     setAuthLoading(true);
 
-    const API_URL = process.env.REACT_APP_API_URL || '';
+    const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
 
     try {
       if (authMode === 'register') {
@@ -350,7 +350,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
       return;
     }
     try {
-      const API_URL = process.env.REACT_APP_API_URL || '';
+      const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
       const response = await axios.post(`${API_URL}/api/projects`, {
         name: `Microgrid Site (${formData.lat}°, ${formData.lon}°)`,
         lat: formData.lat,
@@ -368,7 +368,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
   const runSensitivity = async () => {
     setError('');
     try {
-      const API_URL = process.env.REACT_APP_API_URL || '';
+      const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
       let response;
       if (auth.token && projectId) {
         response = await axios.post(`${API_URL}/api/projects/${projectId}/sensitivity`, {
@@ -392,7 +392,7 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
   const downloadReport = async () => {
     setError('');
     try {
-      const API_URL = process.env.REACT_APP_API_URL || '';
+      const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
       let response;
       if (auth.token && projectId && analysisId) {
         response = await axios.get(`${API_URL}/api/projects/${projectId}/report/${analysisId}.pdf`, {
@@ -997,9 +997,6 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
                         <div className="text-[9px] text-slate-500 uppercase">Roof PV Potential</div>
                         <div className="text-base font-bold text-slate-800">
                           {siteScan.roof_pv_potential_kwp} <span className="text-[10px] font-normal">kWp</span>
-                        </div>
-                        <div className="text-[9px] text-emerald-700 font-semibold mt-0.5">
-                          ≈ {Math.ceil((siteScan.roof_pv_potential_kwp * 1000) / 550).toLocaleString()} panels @ 550 W
                         </div>
                       </div>
                     </div>

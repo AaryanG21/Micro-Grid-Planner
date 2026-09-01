@@ -61,12 +61,9 @@ NASA_POWER_URL = "https://power.larc.nasa.gov/api/temporal/climatology/point?par
 OPEN_METEO_URL = "https://archive-api.open-meteo.com/v1/archive?latitude={lat}&longitude={lon}&start_date=2023-01-01&end_date=2023-12-31&hourly=wind_speed_10m&windspeed_unit=ms"
 
 DEFAULT_ASSUMPTIONS = {
-    # Costs converted from the original USD assumptions at ~95.5 INR/USD
-    # (a literal FX conversion of the underlying per-unit costs; not
-    # re-benchmarked against Indian hardware/fuel pricing).
-    "pv_cost_per_kw": 114600.0, "wind_cost_per_kw": 143250.0, "biomass_cost_per_kw": 191000.0,
-    "battery_cost_per_kwh": 38200.0, "inverter_cost_per_kw": 19100.0, "generator_cost_per_kw": 28650.0,
-    "fuel_cost": 114.6, "discount_rate": 0.08, "project_life_years": 20,
+    "pv_cost_per_kw": 1200.0, "wind_cost_per_kw": 1500.0, "biomass_cost_per_kw": 2000.0,
+    "battery_cost_per_kwh": 400.0, "inverter_cost_per_kw": 200.0, "generator_cost_per_kw": 300.0,
+    "fuel_cost": 1.20, "discount_rate": 0.08, "project_life_years": 20,
     "battery_dod": 0.90, "battery_roundtrip_efficiency": 0.90, "performance_ratio": 0.75,
     # Floor on each renewable's share of daily load, so a single very cheap
     # resource (e.g. strong, steady wind) can't drive the LP to a 100%
@@ -682,8 +679,8 @@ def build_pdf_report(project_name, lat, lon, result):
         Paragraph("Financial & Economic Viability", styles["Heading2"]),
         Table([
             ["Financial Indicator", "Value"],
-            ["Total Capital Expenditure (CAPEX)", f"₹{result.get('capex_total', 0):,.2f}"],
-            ["Annual Operational Expenditure (OPEX)", f"₹{result.get('opex', 0):,.2f}"],
+            ["Total Capital Expenditure (CAPEX)", f"${result.get('capex_total', 0):,.2f}"],
+            ["Annual Operational Expenditure (OPEX)", f"${result.get('opex', 0):,.2f}"],
             ["Estimated Payback Period", str(result.get('payback_period', 'N/A'))],
             ["Internal Rate of Return (IRR)", f"{result.get('irr', 0):.1f}%"],
             ["20-Year Return on Investment (ROI)", f"{result.get('roi_20yr', 0):.1f}%"]
@@ -817,4 +814,5 @@ def api_keys():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(host="0.0.0.0", port=5050, debug=os.environ.get("FLASK_DEBUG", "false").lower() in {"1", "true"})
+    app.run(host="0.0.0.0", port=5000, debug=os.environ.get("FLASK_DEBUG", "false").lower() in {"1", "true"})
+

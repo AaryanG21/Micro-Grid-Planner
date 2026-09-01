@@ -998,9 +998,6 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
                         <div className="text-base font-bold text-slate-800">
                           {siteScan.roof_pv_potential_kwp} <span className="text-[10px] font-normal">kWp</span>
                         </div>
-                        <div className="text-[9px] text-emerald-700 font-semibold mt-0.5">
-                          ≈ {Math.ceil((siteScan.roof_pv_potential_kwp * 1000) / 550).toLocaleString()} panels @ 550 W
-                        </div>
                       </div>
                     </div>
 

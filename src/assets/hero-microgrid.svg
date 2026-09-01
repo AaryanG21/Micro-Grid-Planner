@@ -1,0 +1,116 @@
+<svg width="1920" height="1200" viewBox="0 0 1920 1200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0b1220"/>
+      <stop offset="45%" stop-color="#101b34"/>
+      <stop offset="75%" stop-color="#14204a"/>
+      <stop offset="100%" stop-color="#0d1730"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="38%" r="60%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.4"/>
+      <stop offset="45%" stop-color="#6366f1" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#0b1220" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="panelSheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="groundFade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a1222" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#05070d" stop-opacity="0.9"/>
+    </linearGradient>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+
+  <rect width="1920" height="1200" fill="url(#sky)"/>
+  <rect width="1920" height="1200" fill="url(#glow)"/>
+
+  <!-- faint grid connection lines across the sky, suggesting a network -->
+  <g stroke="#60a5fa" stroke-opacity="0.18" stroke-width="1.5">
+    <line x1="120" y1="260" x2="640" y2="150"/>
+    <line x1="640" y1="150" x2="1180" y2="230"/>
+    <line x1="1180" y1="230" x2="1780" y2="140"/>
+    <line x1="380" y1="430" x2="960" y2="300"/>
+    <line x1="960" y1="300" x2="1540" y2="420"/>
+    <line x1="200" y1="620" x2="900" y2="520"/>
+    <line x1="900" y1="520" x2="1600" y2="600"/>
+  </g>
+  <g fill="#a5b4fc" fill-opacity="0.7">
+    <circle cx="120" cy="260" r="4"/>
+    <circle cx="640" cy="150" r="5"/>
+    <circle cx="1180" cy="230" r="4"/>
+    <circle cx="1780" cy="140" r="4"/>
+    <circle cx="380" cy="430" r="3.5"/>
+    <circle cx="960" cy="300" r="5"/>
+    <circle cx="1540" cy="420" r="4"/>
+    <circle cx="200" cy="620" r="3.5"/>
+    <circle cx="900" cy="520" r="4.5"/>
+    <circle cx="1600" cy="600" r="4"/>
+  </g>
+
+  <!-- distant hills -->
+  <path d="M0,760 Q300,700 620,750 T1180,730 T1920,770 V1200 H0 Z" fill="#0e1a30"/>
+  <path d="M0,820 Q400,770 800,810 T1560,800 T1920,830 V1200 H0 Z" fill="#0a1424"/>
+
+  <!-- wind turbines (simple original silhouettes) -->
+  <g fill="#1e293b" stroke="#5b6d95" stroke-width="2">
+    <!-- turbine 1 -->
+    <g transform="translate(300,560)">
+      <line x1="0" y1="0" x2="0" y2="220" stroke="#475569" stroke-width="7"/>
+      <g stroke="#7c8db3" stroke-width="8" stroke-linecap="round">
+        <line x1="0" y1="0" x2="0" y2="-95" transform="rotate(15)"/>
+        <line x1="0" y1="0" x2="0" y2="-95" transform="rotate(135)"/>
+        <line x1="0" y1="0" x2="0" y2="-95" transform="rotate(255)"/>
+      </g>
+      <circle cx="0" cy="0" r="7" fill="#94a3b8"/>
+    </g>
+    <!-- turbine 2, further back / smaller -->
+    <g transform="translate(1660,600) scale(0.75)">
+      <line x1="0" y1="0" x2="0" y2="220" stroke="#475569" stroke-width="7"/>
+      <g stroke="#7c8db3" stroke-width="8" stroke-linecap="round">
+        <line x1="0" y1="0" x2="0" y2="-95" transform="rotate(60)"/>
+        <line x1="0" y1="0" x2="0" y2="-95" transform="rotate(180)"/>
+        <line x1="0" y1="0" x2="0" y2="-95" transform="rotate(300)"/>
+      </g>
+      <circle cx="0" cy="0" r="7" fill="#94a3b8"/>
+    </g>
+    <!-- turbine 3, small, far -->
+    <g transform="translate(1450,540) scale(0.5)">
+      <line x1="0" y1="0" x2="0" y2="220" stroke="#475569" stroke-width="7"/>
+      <g stroke="#7c8db3" stroke-width="8" stroke-linecap="round">
+        <line x1="0" y1="0" x2="0" y2="-95" transform="rotate(-20)"/>
+        <line x1="0" y1="0" x2="0" y2="-95" transform="rotate(100)"/>
+        <line x1="0" y1="0" x2="0" y2="-95" transform="rotate(220)"/>
+      </g>
+      <circle cx="0" cy="0" r="7" fill="#94a3b8"/>
+    </g>
+  </g>
+
+  <!-- solar panel field, simple isometric grid of rectangles -->
+  <g transform="translate(560,860)">
+    <g stroke="#0b1220" stroke-width="2">
+      <!-- row 1 -->
+      <polygon points="0,60 160,20 300,55 140,100" fill="url(#panelSheen)"/>
+      <polygon points="170,105 310,60 450,95 300,145" fill="url(#panelSheen)"/>
+      <polygon points="320,150 460,105 600,140 450,190" fill="url(#panelSheen)"/>
+      <!-- row 2 -->
+      <polygon points="-30,120 130,80 270,115 110,160" fill="url(#panelSheen)" opacity="0.9"/>
+      <polygon points="140,165 280,120 420,155 270,205" fill="url(#panelSheen)" opacity="0.9"/>
+      <polygon points="290,210 430,165 570,200 420,250" fill="url(#panelSheen)" opacity="0.9"/>
+    </g>
+    <!-- panel grid lines for texture -->
+    <g stroke="#93c5fd" stroke-opacity="0.35" stroke-width="1.5">
+      <line x1="30" y1="70" x2="140" y2="98"/>
+      <line x1="60" y1="80" x2="160" y2="107"/>
+      <line x1="200" y1="115" x2="300" y2="143"/>
+      <line x1="230" y1="125" x2="320" y2="152"/>
+    </g>
+  </g>
+
+  <rect width="1920" height="1200" fill="url(#groundFade)"/>
+
+  <!-- subtle vignette corners -->
+  <rect width="1920" height="1200" fill="#000000" fill-opacity="0.08"/>
+</svg>
