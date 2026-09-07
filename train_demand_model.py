@@ -1,19 +1,3 @@
-"""
-Train the DEPLOYABLE demand model: no lag features, so it works for any
-map location with no metering history.
-
-The benchmark model in load_forecast.py gets most of its accuracy from lag_24
-(the load 24 hours ago at the same meter). A user clicking an arbitrary point
-on a map has no meter and no history, so those features are undefined. This
-model uses only calendar features plus temperature, both of which are
-available anywhere on earth from the Open-Meteo API the app already calls.
-
-Target is load / mean(load), a dimensionless shape multiplier. That is what
-makes it transferable: multiply the predicted shape by a site's estimated
-daily kWh and you get an hourly profile for that site.
-
-Output: models/demand_shape.joblib
-"""
 import json
 import os
 
