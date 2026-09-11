@@ -1,0 +1,21 @@
+{
+  "engine": "sklearn HistGBM",
+  "test_mape_pct": 5.44,
+  "flat_baseline_mape_pct": 14.35,
+  "train_rows": 112487,
+  "test_rows": 8809,
+  "features": [
+    "hour_sin",
+    "hour_cos",
+    "doy_sin",
+    "doy_cos",
+    "hour",
+    "dow",
+    "month",
+    "is_weekend",
+    "temp_c",
+    "cooling_deg",
+    "heating_deg",
+    "temp_roll_24"
+  ]
+}

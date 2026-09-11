@@ -27,7 +27,6 @@ instance/
 
 # site-scan / ML artefacts
 data/
-models/
 results_*.csv
 fig_*.png
 run_*.log
