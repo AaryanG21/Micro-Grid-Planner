@@ -17,11 +17,13 @@ You need to run both the backend (Flask) and the frontend (React) servers simult
 
 Open a terminal in the root directory of this repository and run the following commands:
 
+`source .venv/bin/activate`
+
 `pip install -r requirements.txt`
 
-`python app.py`
+`python3 app.py`
 
-The backend server should now be running, typically on `http://127.0.0.1:5000`.
+The backend server should now be running, on `http://127.0.0.1:5050` (port 5000 is used by macOS AirPlay Receiver).
 
 ### 2. Run the Frontend (React App)
 
