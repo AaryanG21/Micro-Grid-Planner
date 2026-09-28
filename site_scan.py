@@ -17,16 +17,24 @@ which is which.
 """
 import math
 import os
+import time
 
 import numpy as np
 import pandas as pd
 import requests
 
+# Only the main instance. The kumi.systems mirror was dropped: every attempt
+# either timed out or refused the connection, and one request hung for 633 s
+# despite timeout=40 (that timeout only bounds the gap between chunks, not the
+# whole response). Falling through to it turned a transient "busy" on the main
+# instance into a hard "could not reach" several minutes later.
 OVERPASS_URLS = [
     "https://overpass-api.de/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
 ]
 OVERPASS_URL = OVERPASS_URLS[0]
+OVERPASS_ATTEMPTS = 3
+OVERPASS_DEADLINE_S = 45
+OVERPASS_READ_TIMEOUT_S = 25
 # Overpass returns 406 to the default python-requests user agent.
 HEADERS = {"User-Agent": "MicrogridPlanner/1.0 (academic project; contact via app)"}
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
@@ -88,6 +96,42 @@ def centroid(coords):
 
 
 # -------------------------------------------------------------- OSM lookup
+class OverpassBusy(requests.RequestException):
+    """Overpass is up but shedding load (429/504). Retrying later works."""
+
+
+def overpass_query(query, deadline_s=OVERPASS_DEADLINE_S):
+    """Run an Overpass QL query and return its elements.
+
+    Retries the instance on 429/504 with backoff rather than failing over to a
+    mirror, and gives up once deadline_s has elapsed so a caller can never
+    hang. Raises OverpassBusy when the server was reachable but overloaded.
+    """
+    started = time.monotonic()
+    last_busy = None
+    for attempt in range(OVERPASS_ATTEMPTS):
+        remaining = deadline_s - (time.monotonic() - started)
+        if remaining <= 0:
+            break
+        for url in OVERPASS_URLS:
+            try:
+                r = requests.post(url, data={"data": query}, headers=HEADERS,
+                                  timeout=(10, min(OVERPASS_READ_TIMEOUT_S, remaining)))
+            except requests.RequestException as exc:
+                if attempt == OVERPASS_ATTEMPTS - 1 and url == OVERPASS_URLS[-1]:
+                    raise
+                last_busy = None
+                continue
+            if r.status_code in (429, 504):
+                last_busy = OverpassBusy(f"{url} returned {r.status_code}", response=r)
+                continue
+            r.raise_for_status()
+            return r.json().get("elements", [])
+        # Back off before trying again: 1 s, then 2 s.
+        time.sleep(min(2 ** attempt, max(0, deadline_s - (time.monotonic() - started))))
+    raise last_busy or OverpassBusy("Overpass did not answer within the time limit")
+
+
 def fetch_buildings(lat, lon, radius_m):
     """Buildings within radius_m of (lat, lon) from OpenStreetMap."""
     query = f"""
@@ -98,18 +142,7 @@ def fetch_buildings(lat, lon, radius_m):
     );
     out geom;
     """
-    last = None
-    for url in OVERPASS_URLS:
-        try:
-            r = requests.post(url, data={"data": query}, headers=HEADERS, timeout=40)
-            r.raise_for_status()
-            elements = r.json().get("elements", [])
-            break
-        except requests.RequestException as exc:
-            last = exc
-    else:
-        raise last
-
+    elements = overpass_query(query)
 
     buildings = []
     for el in elements:
@@ -279,6 +312,8 @@ def register_site_scan(app, cache=None, limiter=None):
 
         try:
             result = _scan(round(lat, 5), round(lon, 5), radius, override)
+        except OverpassBusy:
+            return jsonify({"error": "OpenStreetMap is busy, try again in a moment"}), 503
         except requests.HTTPError as exc:
             code = exc.response.status_code if exc.response is not None else 502
             msg = ("OpenStreetMap is rate limiting this IP, try again shortly"

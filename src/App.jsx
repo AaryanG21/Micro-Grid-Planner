@@ -14,6 +14,9 @@ import {
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import useCityScan from './hooks/useCityScan';
+import CityLayers from './components/city/CityLayers';
+import CitySummary from './components/city/CitySummary';
 
 // Fix Leaflet marker icon URLs in React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -185,6 +188,21 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
   useEffect(() => {
     setCoordDraft({ lat: formData.lat, lon: formData.lon });
   }, [formData.lat, formData.lon]);
+
+  const city = useCityScan();
+
+  // Clicking a ranked cell moves the site pin there and runs the existing
+  // site scan, so the city view feeds straight into the normal planning flow.
+  const handlePickCitySite = ({ lat, lon }) => {
+    handleMapClick({ lat, lng: lon });
+  };
+
+  const handleCityAnalyse = async () => {
+    const found = await city.analyse(searchQuery);
+    if (found?.city) {
+      handleMapClick({ lat: found.city.lat, lng: found.city.lon });
+    }
+  };
 
   const handleGeocodeSearch = async (e) => {
     if (e) e.preventDefault();
@@ -821,8 +839,18 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
                 >
                   {searching ? 'Searching…' : 'Search'}
                 </button>
+                <button
+                  type="button"
+                  onClick={handleCityAnalyse}
+                  disabled={city.loading || !searchQuery.trim()}
+                  title="Map consumption, population, industry and CO2 across the whole city"
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm transition disabled:opacity-60"
+                >
+                  {city.loading ? 'Analysing…' : 'Analyse city'}
+                </button>
               </form>
               {searchError && <p className="text-xs text-red-600">{searchError}</p>}
+              {city.error && <p className="text-xs text-amber-700">{city.error}</p>}
 
               <div className="h-80 rounded-xl overflow-hidden border border-slate-200 z-0">
                 <MapContainer
@@ -833,8 +861,22 @@ function App({ initialView = 'dashboard', initialAuthMode = 'login', onNavigateH
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                   <LocationMarker position={{ lat: formData.lat, lng: formData.lon }} setPosition={handleMapClick} />
+                  <CityLayers
+                    scan={city.scan}
+                    layers={city.layers}
+                    points={city.points}
+                    loadLayer={city.loadLayer}
+                    loadPoints={city.loadPoints}
+                    onPickSite={handlePickCitySite}
+                  />
                 </MapContainer>
               </div>
+
+              {city.scan && (
+                <div className="p-3 rounded-xl border border-slate-200 bg-white">
+                  <CitySummary scan={city.scan} onPickSite={handlePickCitySite} />
+                </div>
+              )}
 
               <div className="flex flex-wrap items-end gap-3">
                 <div>

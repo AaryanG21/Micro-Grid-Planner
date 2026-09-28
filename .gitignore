@@ -31,3 +31,9 @@ results_*.csv
 fig_*.png
 run_*.log
 *.bak-sitescan
+
+# city_scan bundled data. The "data/" rule above matches any directory named
+# data at any depth, which would silently drop the CSVs the app reads at
+# runtime, so re-include the directory and ignore only the big cached tiles.
+!city_scan/data/
+city_scan/data/tiles/

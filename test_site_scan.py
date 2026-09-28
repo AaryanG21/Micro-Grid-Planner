@@ -49,7 +49,15 @@ def test_area():
     print(f"  area of a 10 m square = {a:.1f} m2  OK")
 
 
-def test_scan(monkeypatched):
+def test_scan(monkeypatch):
+    # The fixture this asked for ("monkeypatched") never existed, so the test
+    # errored out instead of running. Stub Overpass and the temperature feed,
+    # as the module docstring says, so it needs no network.
+    monkeypatch.setattr(site_scan.requests, "post", lambda *a, **k: FakeResp())
+    monkeypatch.setattr(site_scan, "fetch_temperature_profile", lambda lat, lon: (
+        pd.Series([26.0] * 24,
+                  index=pd.date_range("2024-06-01", periods=24, freq="h")),
+        "test-stub"))
     r = site_scan.scan_site(12.97, 77.59, radius_m=50)
     assert r["building_count"] == 5, r["building_count"]
     # 2 houses @3.5 + 1 apartments 4 levels @12 + school @30 + other @5
@@ -68,7 +76,7 @@ def test_scan(monkeypatched):
     return r
 
 
-def test_model_roundtrip():
+def test_model_roundtrip(tmp_path, monkeypatch):
     """Train a throwaway model on synthetic data to verify the joblib load and
     predict plumbing that scan_site depends on. Not a result, just plumbing."""
     from sklearn.ensemble import HistGradientBoostingRegressor
@@ -79,8 +87,8 @@ def test_model_roundtrip():
     x = build_features(idx, temp.values)[FEATURES]
     y = 1 + 0.4 * np.sin(idx.hour / 24 * 2 * np.pi) + 0.01 * temp.values
     m = HistGradientBoostingRegressor(max_iter=40).fit(x, y)
-    import os
-    os.makedirs("models", exist_ok=True)
+    # Write to a temp path so the real trained model is never touched.
+    monkeypatch.setattr(site_scan, "MODEL_PATH", str(tmp_path / "demand_shape.joblib"))
     joblib.dump({"model": m, "features": FEATURES, "engine": "test",
                  "test_mape": 1.23}, site_scan.MODEL_PATH)
     site_scan._MODEL_CACHE.clear()
@@ -90,7 +98,6 @@ def test_model_roundtrip():
     print(f"  model path: peak {p['peak_kw']} kW at hour {p['peak_hour']}, "
           f"load factor {p['load_factor']}")
     print(f"  method: {p['method']}")
-    os.remove(site_scan.MODEL_PATH)
     site_scan._MODEL_CACHE.clear()
 
 

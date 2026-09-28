@@ -1,0 +1,66 @@
+{
+ "climate_trace": {
+  "ok": true,
+  "seconds": 4.8,
+  "v6": 200,
+  "sample": [
+   "India_OtherBasins_OtherResources",
+   "Vindhyachal power station",
+   "Sasan Ultra Mega Power Project"
+  ],
+  "v7": 404,
+  "bbox_status": 200,
+  "bbox_count": 0
+ },
+ "overpass_industry": {
+  "ok": true,
+  "seconds": 9.8,
+  "elements": 2199,
+  "named": 440,
+  "sample": [
+   "Bosch NhP",
+   "BWSSB",
+   "BMTC Depot 4 (Jayanagara)",
+   "Central Warehouse",
+   "Concor"
+  ]
+ },
+ "worldpop": {
+  "ok": true,
+  "seconds": 1.7,
+  "title": "The spatial distribution of population in 2020, India",
+  "year": "2020",
+  "license": "https://hub.worldpop.org/data/licence.txt",
+  "url": "https://data.worldpop.org/GIS/Population/Global_2000_2020/2020/IND/ind_ppp_2020.tif",
+  "head_status": 200,
+  "size_mb": 1844.1,
+  "accept_ranges": "bytes"
+ },
+ "ghsl_population": {
+  "ok": true,
+  "seconds": 0.9,
+  "head_status": 200,
+  "size_mb": 12855.4,
+  "accept_ranges": "bytes"
+ },
+ "nightlights": {
+  "ok": true,
+  "seconds": 5.1,
+  "eog_root": 200,
+  "eog_token_api": 404,
+  "earthengine_note": 200
+ },
+ "kerc_bescom": {
+  "ok": true,
+  "seconds": 4.1,
+  "status": 500,
+  "bytes": 26895
+ },
+ "emission_factors": {
+  "ok": true,
+  "seconds": 1.1,
+  "cea": 200,
+  "ember": 403,
+  "ember_api": 403
+ }
+}

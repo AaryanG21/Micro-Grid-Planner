@@ -57,6 +57,11 @@ from site_scan import register_site_scan
 
 register_site_scan(app, cache=cache, limiter=limiter)
 
+from city_scan import boundary as city_boundary, emission_factors
+from city_scan.api import register_city_scan
+
+register_city_scan(app, cache=cache, limiter=limiter)
+
 NASA_POWER_URL = "https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN&community=RE&longitude={lon}&latitude={lat}&format=JSON"
 OPEN_METEO_URL = "https://archive-api.open-meteo.com/v1/archive?latitude={lat}&longitude={lon}&start_date=2023-01-01&end_date=2023-12-31&hourly=wind_speed_10m&windspeed_unit=ms"
 
@@ -257,6 +262,22 @@ def hourly_profile(values, fallback_daily):
     raise ValueError("Load profile must contain exactly 24 or 8760 hourly kWh values")
 
 
+@cache.memoize(timeout=86400)
+def country_for(lat, lon):
+    """ISO2 country of a site, for the grid emission factor.
+
+    Cached for a day and rounded to ~1 km, because Nominatim allows one call a
+    second and a plan request must not wait on it. Returns None when the
+    lookup fails, which makes emission_factors fall back to a world average
+    and say so rather than guessing a country.
+    """
+    try:
+        return city_boundary.get_city(lat=round(lat, 2), lon=round(lon, 2),
+                                      require_area=False)["country_code"] or None
+    except Exception:                       # noqa: BLE001 - never fail a plan
+        return None
+
+
 def size_system(plan, profile_values=None):
     assumptions = merged_assumptions(plan.assumptions)
     weather_factor = 0.85 if plan.weather_case == "P90" else 1.0
@@ -356,10 +377,18 @@ def size_system(plan, profile_values=None):
             "diesel": round(float(diesel_val), 1)
         })
 
+    # CO2 avoided used to be a flat 0.8 t/MWh everywhere. It is now the
+    # displaced supply's own factor: the country's grid intensity (India's
+    # published 0.675, France's 0.041) blended with diesel for the share a
+    # generator was carrying. See city_scan/emission_factors.py.
+    co2 = emission_factors.avoided_co2_t(
+        annual_load, country_code=country_for(plan.lat, plan.lon),
+        grid_share=getattr(plan, "grid_share", 1.0))
+
     return {
         "capex_total": round(float(capex), 1), "opex": round(float(annual_om), 1), "payback_period": payback,
         "roi_20yr": round(float(cumulative[-1] / capex * 100), 1), "irr": round(float(irr * 100), 1) if np.isfinite(irr) else 0,
-        "co2_avoided_t": round(float(annual_load * 0.8 / 1000), 1), "buildings": plan.buildings,
+        "co2_avoided_t": co2["co2_avoided_t"], "co2_basis": co2, "buildings": plan.buildings,
         "system_capacity": round(float(pv_kw + wind_kw + biomass_kw), 1), "area_sqm": round(plan.area_sqm),
         "batt_kwh": round(float(battery_kwh)), "solar_irradiance": round(float(ghi_median), 2), "wind_speed": round(float(wind_speed), 2),
         "energy_mix": {"Solar": round(float(proportions[0] * 100), 1), "Wind": round(float(proportions[1] * 100), 1), "Biomass": round(float(proportions[2] * 100), 1)},
@@ -665,6 +694,34 @@ def equipment_catalog():
     db.session.add(item); db.session.commit(); return jsonify({"id": item.id}), 201
 
 
+def co2_factor_line(result):
+    """One line naming the emission factor and where it came from.
+
+    A CO2 figure a reader cannot trace is not much use in a feasibility report.
+    """
+    basis = result.get("co2_basis") or {}
+    grid = basis.get("grid_factor") or {}
+    if not grid:
+        return "not recorded"
+    source = (grid.get("source") or {}).get("name", "unknown source")
+    return (f"{basis.get('factor_t_per_mwh', 0):.3f} t CO2/MWh "
+            f"({grid.get('basis', 'unknown basis')}; {source})")
+
+
+def co2_method_line(result):
+    """Methodology sentence for the CO2 figure, with its sources."""
+    basis = result.get("co2_basis") or {}
+    if not basis:
+        return "CO2 avoided: emission factor not recorded for this analysis."
+    grid = basis.get("grid_factor") or {}
+    diesel = (basis.get("diesel_factor") or {}).get("source") or {}
+    return ("CO2 avoided is calculated as " + basis.get("method", "") +
+            ". Grid factor: " + (grid.get("source") or {}).get("name", "unknown") +
+            ". Diesel factor: " + diesel.get("name", "unknown") +
+            (f", assuming {diesel.get('assumption')}" if diesel.get("assumption") else "") +
+            ".")
+
+
 def build_pdf_report(project_name, lat, lon, result):
     stream = io.BytesIO()
     document = SimpleDocTemplate(stream, pagesize=letter, leftMargin=0.5 * inch, rightMargin=0.5 * inch, topMargin=0.5 * inch, bottomMargin=0.5 * inch)
@@ -725,6 +782,7 @@ def build_pdf_report(project_name, lat, lon, result):
             ["System Reliability Score", f"{result.get('reliability', 0):.2f}%"],
             ["Demand Coverage", f"{result.get('meets_demand', 'Yes')}"],
             ["Annual CO2 Avoided", f"{co2:,.1f} Metric Tonnes"],
+            ["Emission Factor Applied", co2_factor_line(result)],
             ["Equivalent Tree Planting Impact", f"≈ {int(co2 * 50):,} Trees / Year"],
             ["Solar GHI Irradiance", f"{result.get('solar_irradiance', 0)} kWh/m²/day"],
             ["Average Wind Speed", f"{result.get('wind_speed', 0)} m/s"]
@@ -743,7 +801,8 @@ def build_pdf_report(project_name, lat, lon, result):
         Spacer(1, 0.15 * inch),
         
         Paragraph("Notice & Methodology", styles["Heading2"]),
-        Paragraph("This feasibility evaluation is optimized using SciPy HiGHS linear programming algorithms coupled with satellite weather parameters from NASA POWER and Open-Meteo API archives. Intended for preliminary engineering assessment.", styles["Normal"])
+        Paragraph("This feasibility evaluation is optimized using SciPy HiGHS linear programming algorithms coupled with satellite weather parameters from NASA POWER and Open-Meteo API archives. Intended for preliminary engineering assessment.", styles["Normal"]),
+        Paragraph(co2_method_line(result), styles["Normal"])
     ]
     
     document.build(story)

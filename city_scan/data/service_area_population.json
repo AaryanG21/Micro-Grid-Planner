@@ -1,0 +1,22 @@
+{
+ "BESCOM": {
+  "utility": "BESCOM",
+  "population": 30095552,
+  "by_district": {
+   "Bengaluru Urban district, Karnataka, India": 15847795,
+   "Bengaluru Rural district, Karnataka, India": 1802892,
+   "Ramanagara district, Karnataka, India": 1363989,
+   "Kolar district, Karnataka, India": 1899295,
+   "Chikkaballapura district, Karnataka, India": 1588492,
+   "Tumakuru district, Karnataka, India": 3420047,
+   "Davanagere district, Karnataka, India": 2110110,
+   "Chitradurga district, Karnataka, India": 2062932
+  },
+  "source": {
+   "name": "GHSL GHS-POP R2023A (epoch 2025, 3 arc-seconds)",
+   "url": "https://human-settlement.emergency.copernicus.eu/download.php",
+   "licence": "CC BY 4.0 - European Commission, Joint Research Centre",
+   "resolution_m": 93
+  }
+ }
+}

@@ -81,6 +81,31 @@ class Incentive(db.Model):
     ends_on = db.Column(db.Date)
 
 
+class CityAnalysis(db.Model):
+    """A cached city scan: grid cells plus every layer attached to them.
+
+    Not tied to an organization. A city's population, industry and emissions
+    are public facts, so one scan serves every tenant, and rebuilding it per
+    org would hammer the upstream APIs for identical answers.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False, index=True)
+    display_name = db.Column(db.String(512))
+    country_code = db.Column(db.String(2), index=True)
+    lat = db.Column(db.Float, nullable=False)
+    lon = db.Column(db.Float, nullable=False)
+    bbox = db.Column(db.JSON, nullable=False)
+    cell_size_m = db.Column(db.Integer, nullable=False, default=1000)
+    tier = db.Column(db.String(20), nullable=False, default="estimated")
+    status = db.Column(db.String(20), nullable=False, default="complete")
+    # The full pipeline result: summary, per-cell values, layer status, sources.
+    summary_json = db.Column(db.JSON, nullable=False, default=dict)
+    cells_json = db.Column(db.JSON, nullable=False, default=list)
+    sources_json = db.Column(db.JSON, nullable=False, default=dict)
+    created_at = db.Column(db.DateTime, server_default=func.now(), nullable=False)
+    expires_at = db.Column(db.DateTime, index=True)
+
+
 class Equipment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     org_id = db.Column(db.Integer, db.ForeignKey("organization.id"), nullable=False, index=True)
